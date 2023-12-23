@@ -23,6 +23,7 @@
     |nhead|8|多头Tranformer头的数量|
     |episodes|TBD|训练轮数|
     |batch_size|TBD||
+    |...|
 
 1. 数据处理
     1. 提取*训练集*的 `product_id`, `event_type`, `user_id` 列，根据 `user_id` 将数据集重新划分，每个 user 对应一串长为 `truncation` 的行动序列

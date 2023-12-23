@@ -2,7 +2,7 @@ from pandas import read_csv
 from tqdm import tqdm
 
 TestSet = read_csv(
-    "./data/sss.csv",
+    "./data/4PersonalTest.csv",
     usecols=["event_type", "product_id", "user_id"],
     dtype={"event_type": str, "product_id": str, "user_id": str},
 )
