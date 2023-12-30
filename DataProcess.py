@@ -37,7 +37,7 @@ class EBDataset(Dataset):  # Electronic Business Dataset
             if not row["product_id"] in self.ProdList:
                 self.ProdDict[row["product_id"]] = len(self.ProdList)
                 self.ProdList.append(row["product_id"])
-        
+        #print(len(self.ProdList))#32735
         # Organize records, do truncation and padding
         self.TrainSet = self.TrainSet.groupby("user_id")
         for user_id, PartSet in tqdm(self.TrainSet, desc="Organize records"):
@@ -45,7 +45,7 @@ class EBDataset(Dataset):  # Electronic Business Dataset
             # Truncation
             while len(PartSet) > i + truncation:
                 self.users += 1  # Create a new user
-                i += truncation
+                
 
                 # Extract each product's index in its records
                 ProdList = PartSet.iloc[i : i + truncation]["product_id"].tolist()
@@ -58,20 +58,21 @@ class EBDataset(Dataset):  # Electronic Business Dataset
                     self.EventDict[event_type] for event_type in EventList
                 ]
                 self.RecordList["Event"].append(EventIndexList)
-                print(ProdList)
+                i += truncation
+                #print(ProdList)
 
             self.users += 1
             # Padding product
             ProdList = PartSet.iloc[i : len(PartSet)]["product_id"].tolist()
-            for i in range(truncation - len(ProdList)):
+            for j in range(truncation - len(ProdList)):
                 ProdList.append("000")
             ProdIndexList = [self.ProdDict[product_id] for product_id in ProdList]
             self.RecordList["Prod"].append(ProdIndexList)
 
             # Padding event
             EventList = PartSet.iloc[i : len(PartSet)]["event_type"].tolist()
-            for i in range(truncation - len(EventList)):
-                EventList.append(4)
+            for j in range(truncation - len(EventList)):
+                EventList.append("padding")
             EventIndexList = [self.EventDict[event_type] for event_type in EventList]
             self.RecordList["Event"].append(EventIndexList)
 

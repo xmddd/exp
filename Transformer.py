@@ -56,7 +56,7 @@ class EBModel(nn.Module):
         self.event_linear.bias.data.zero_()
         self.event_linear.weight.data.uniform_(-initrange, initrange)
 
-    def forward(self, src: Tensor, src_mask: Tensor = None) -> Tensor:
+    def forward(self, src_product: Tensor,src_event: Tensor ,src_mask: Tensor = None) -> Tensor:
         """
         Arguments:
             src     : Tensor, with size [truncation, batch_size]
@@ -65,7 +65,7 @@ class EBModel(nn.Module):
             Tensor, with size [truncation, batch_size, ntoken]
         """
         src = torch.cat(
-            (self.prod_embedding(src), self.event_embedding(src)), dim=2
+            (self.prod_embedding(src_product), self.event_embedding(src_event)), dim=2
         ) * math.sqrt(self.d_model)
         # Now src has size [truncation, batch_size, d_model]
         src = self.pos_encoder(src)
@@ -92,7 +92,7 @@ class PositionalEncoding(nn.Module):
         pe[:, 0, 0::2] = torch.sin(position * div_term)
         # 使用余弦函数计算位置编码中的偶数维度部分
         pe[:, 0, 1::2] = torch.cos(position * div_term)
-        self.pe = pe
+        #self.pe = pe
         self.register_buffer("pe", pe)
 
     def forward(self, x: Tensor) -> Tensor:
