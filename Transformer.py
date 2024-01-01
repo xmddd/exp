@@ -32,6 +32,9 @@ class EBModel(nn.Module):
         # Define PositionalEncoding, to add positional encoding information for input sequence
         self.pos_encoder = PositionalEncoding(d_model)
 
+        self.d_model = d_model
+        # self.transformer = nn.Transformer(d_model=self.d_model, nehad = nhead,num_encoder_layers=2,num_decoder_layers=2)
+
         # Define encoder layer
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead)
 
@@ -41,9 +44,10 @@ class EBModel(nn.Module):
         )
 
         # Define 2 linear network to predict product index and event type
-        self.d_model = d_model
         self.prod_linear = nn.Linear(d_model, n_product)
         self.event_linear = nn.Linear(d_model, n_event)
+
+        self.Softmax = nn.Softmax(dim= -1)
 
         self.init_weights()
 
@@ -59,19 +63,24 @@ class EBModel(nn.Module):
     def forward(self, src_product: Tensor,src_event: Tensor ,src_mask: Tensor = None) -> Tensor:
         """
         Arguments:
-            src     : Tensor, with size [truncation, batch_size]
-            src_mask: Tensor, with size [truncation, truncation]
+            src_product:    Tensor, with size [truncation, batch_size]
+            src_event:      Tensor, with size [truncation, batch_size]
+            src_mask:       Tensor, with size [truncation, truncation]
         Returns:
-            Tensor, with size [truncation, batch_size, ntoken]
+            output_prod:    Tensor, with size [truncation, batch_size, n_product]
+            output_event:   Tensor, with size [truncation, batch_size, n_event]
         """
         src = torch.cat(
             (self.prod_embedding(src_product), self.event_embedding(src_event)), dim=2
         ) * math.sqrt(self.d_model)
         # Now src has size [truncation, batch_size, d_model]
         src = self.pos_encoder(src)
-        output = self.transformer_encoder(src, src_mask)
+        output = self.transformer_encoder(src,src_mask)
         output_prod = self.prod_linear(output)
         output_event = self.event_linear(output)
+        
+        output_prod = self.Softmax(output_prod)
+        output_event = self.Softmax(output_event)
         return output_prod, output_event
 
 

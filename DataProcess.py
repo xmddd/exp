@@ -37,7 +37,7 @@ class EBDataset(Dataset):  # Electronic Business Dataset
             if not row["product_id"] in self.ProdList:
                 self.ProdDict[row["product_id"]] = len(self.ProdList)
                 self.ProdList.append(row["product_id"])
-        #print(len(self.ProdList))#32735
+        # print(len(self.ProdList))#32735
         # Organize records, do truncation and padding
         self.TrainSet = self.TrainSet.groupby("user_id")
         for user_id, PartSet in tqdm(self.TrainSet, desc="Organize records"):
@@ -45,7 +45,6 @@ class EBDataset(Dataset):  # Electronic Business Dataset
             # Truncation
             while len(PartSet) > i + truncation:
                 self.users += 1  # Create a new user
-                
 
                 # Extract each product's index in its records
                 ProdList = PartSet.iloc[i : i + truncation]["product_id"].tolist()
@@ -59,7 +58,7 @@ class EBDataset(Dataset):  # Electronic Business Dataset
                 ]
                 self.RecordList["Event"].append(EventIndexList)
                 i += truncation
-                #print(ProdList)
+                # print(ProdList)
 
             self.users += 1
             # Padding product
@@ -75,14 +74,29 @@ class EBDataset(Dataset):  # Electronic Business Dataset
                 EventList.append("padding")
             EventIndexList = [self.EventDict[event_type] for event_type in EventList]
             self.RecordList["Event"].append(EventIndexList)
+            
 
     def __len__(self):
         return self.users
 
     def __getitem__(self, idx):
-        Prods = self.RecordList["Prod"][idx]
-        Events = self.RecordList["Event"][idx]
-        return Prods, Events
+        """
+        Arguments:
+            idx:    int, the index of some user
+        Return:
+            Prods:  Tensor with size [truncation], the products' record of user idx
+            Events: Tensor with size [truncation], the events' record of user idx
+        """
+
+        Prods = torch.tensor(self.RecordList["Prod"][idx])
+        Events = torch.tensor(self.RecordList["Event"][idx])
+
+        src_Prods = Prods[: truncation - 1]
+        tgt_Prods = Prods[1:truncation]
+        src_Events = Events[: truncation - 1]
+        tgt_Events = Events[1:truncation]
+        # return Prods, Events
+        return src_Prods, src_Events, tgt_Prods, tgt_Events
 
 
 # TestSet = read_csv("./data/test.csv")

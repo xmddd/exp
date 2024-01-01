@@ -26,7 +26,6 @@ TestSet = TestSet.groupby("user_id")
 print(len(TestSet))
 truncation = 3
 users = 0
-RecordList = []
 for user_id, PartSet in tqdm(TestSet):
     i = 0
     # print(user_id, PartSet)
@@ -38,6 +37,7 @@ for user_id, PartSet in tqdm(TestSet):
         i += truncation
         ProdList = PartSet.iloc[i : i + truncation]["product_id"].tolist()
         ProdIndexList = [ProdDict[product_id] for product_id in ProdList]
+        RecordList["Prod"].append(ProdIndexList)
         print(ProdIndexList)
     users += 1
     print("i=", i, "\tlength=", len(PartSet))
@@ -45,7 +45,10 @@ for user_id, PartSet in tqdm(TestSet):
     for i in range(truncation - len(ProdList)):
         ProdList.append("000")
     ProdIndexList = [ProdDict[product_id] for product_id in ProdList]
+    RecordList["Prod"].append(ProdIndexList)
     print(ProdIndexList)
+    
+    # print(RecordList["Prod"][1])
 #     RecordList.append(PartSet.loc[i : i + truncation, ["product_id", "event_type"]])
 #     for i in range(truncation - 1 - (length - 1) % truncation):
 #         PartSet.loc[len(PartSet)] = {
